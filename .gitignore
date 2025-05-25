@@ -1,0 +1,19 @@
+# Ignore image folders
+downsampled_rgb/
+downsampled_event_maps/
+blended_deblurred_rgb/
+boosted_rgb/
+event_maps/
+fused_output/
+extracted_frames_scene_2/
+
+# Ignore bag files
+*.bag
+
+# Ignore CSVs if they're large/logs
+*.csv
+
+# Ignore virtualenv
+myenv/
+__pycache__/
+*.pyc
