@@ -1,19 +1,20 @@
-# Ignore image folders
-downsampled_rgb/
-downsampled_event_maps/
-blended_deblurred_rgb/
-boosted_rgb/
-event_maps/
-fused_output/
-extracted_frames_scene_2/
-
-# Ignore bag files
+# ROS bags and extracted data
 *.bag
-
-# Ignore CSVs if they're large/logs
+*.db3
+*.yaml
 *.csv
 
-# Ignore virtualenv
-myenv/
+# Extracted image frames
+extracted_frames_scene_2/
+0/
+event_maps/
+downsampled_*/
+boosted_rgb/
+blended_deblurred_rgb/
+fused_output/
+converted_scene_2/
+
+# Python + virtualenv
 __pycache__/
 *.pyc
+myenv/
