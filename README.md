@@ -1,6 +1,6 @@
-# Event-Guided Motion Deblurring for Underwater Images
+# Event-Guided Edge Reconstruction for Underwater Images
 
-This repository contains a lightweight, modular image enhancement pipeline that uses event camera data to improve underwater image clarity. The aim is to restore sharper structures in blurry RGB frames using motion cues derived from asynchronous event streams. Our approach is designed to be interpretable, efficient, and independent of deep learning models.
+This repository contains a lightweight, modular image enhancement pipeline that uses event camera data to recover sharp edges in underwater RGB frames. Instead of traditional deblurring, we focus on **reconstructing lost structural information** using motion cues derived from asynchronous event streams. Our approach is interpretable, efficient, and independent of deep learning models.
 
 ---
 
@@ -9,7 +9,7 @@ This repository contains a lightweight, modular image enhancement pipeline that 
 1. Extract RGB frames and event streams from underwater DAVIS recordings (.bag files).
 2. Generate grayscale per-frame **event maps** to highlight regions with high temporal change.
 3. Align and downsample the RGB and event data.
-4. Apply event-guided Laplacian gradient injection to selectively enhance motion-blurred regions.
+4. Apply event-guided Laplacian gradient injection to selectively restore edge information in blurry regions.
 
 ---
 
@@ -39,8 +39,6 @@ We used the [`rosbags`](https://pypi.org/project/rosbags/) Python library for pa
 ```bash
 pip install rosbags
 rosbags-convert scene_2.bag --dst converted_scene_2
-
-
 ```
 
 2. Extract RGB frames:
@@ -67,13 +65,12 @@ python generate_event_maps.py  # Outputs aligned grayscale event maps into event
 
 ---
 
-## Enhancement Pipeline Summary
+## Edge Reconstruction Pipeline Summary
 
 After preprocessing, we enhance the RGB frames using a two-stage approach:
 
 1. **Frame Fusion**: Combine three consecutive RGB frames (`t-1`, `t`, `t+1`) using either fixed or adaptive weighting based on the event map.
-2. **Event-Guided Edge Injection**: Compute a Laplacian edge map and selectively inject it into regions with high event activity.
-
+2. **Event-Guided Edge Injection**: Compute a Laplacian edge map and selectively inject it into regions with high event activity to recover sharp edges.
 
 ---
 
@@ -112,7 +109,15 @@ The repository contains two main enhancement scripts:
 * `event_guided_static_fusion.py` computes a uniform average of the surrounding frames and applies event-guided Laplacian sharpening.
 * `event_weighted_temporal_fusion.py` performs adaptive fusion of neighboring frames based on motion intensity derived from the event map. It better handles non-uniform blur and dynamically adjusts sharpening strength.
 
-Both methods use Laplacian edge enhancement guided by event activity, but differ in how the RGB base frame is constructed.
+Both methods aim to restore structural detail by injecting motion-based edges, but differ in how they construct the RGB base image.
+
+---
+
+## Some Results
+
+|                RGB Frame                |        Event-Guided Edge Reconstruction       |
+| :-------------------------------------: | :-------------------------------------------: |
+| <img src="assets/raw.png" width="300"/> | <img src="assets/deblurred.png" width="300"/> |
 
 ---
 
