@@ -13,6 +13,9 @@ boosted_rgb/
 blended_deblurred_rgb/
 fused_output/
 converted_scene_2/
+event_guided_deblurred_v2/
+event_guided_deblurred/
+smart_fusion_output/
 
 # Python + virtualenv
 __pycache__/

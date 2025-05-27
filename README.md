@@ -1,83 +1,122 @@
 # Event-Guided Motion Deblurring for Underwater Images
 
-This repository contains a lightweight image enhancement pipeline that uses event camera data to improve underwater image clarity. The goal is to restore sharper structure in blurry RGB frames using event-driven motion cues, without relying on deep learning.
+This repository contains a lightweight, modular image enhancement pipeline that uses event camera data to improve underwater image clarity. The aim is to restore sharper structures in blurry RGB frames using motion cues derived from asynchronous event streams. Our approach is designed to be interpretable, efficient, and independent of deep learning models.
 
 ---
 
-## 👀 What We Did
+## Overview
 
-1. Extracted RGB frames and event streams from underwater DAVIS recordings.
-2. Generated per-frame **event maps** indicating motion edges.
-3. Downsampled and aligned RGB and event data.
-4. Developed an event-guided gradient fusion method to restore structure.
-
-## What's Next?
-Tuning the pipeline to reduce halo artifacts.
+1. Extract RGB frames and event streams from underwater DAVIS recordings (.bag files).
+2. Generate grayscale per-frame **event maps** to highlight regions with high temporal change.
+3. Align and downsample the RGB and event data.
+4. Apply event-guided Laplacian gradient injection to selectively enhance motion-blurred regions.
 
 ---
 
-## 📦 Dataset
+## Dataset
 
-We used the **DAVIS-NUIUIED** dataset, released alongside the paper:
+We used the **DAVIS-NUIUIED** dataset, presented in the paper:
 
-> **"RGB/Event signal fusion framework for multi-degraded underwater image enhancement"**  
-> [ResearchGate](https://www.researchgate.net/publication/381024944_RGBEvent_signal_fusion_framework_for_multi-degraded_underwater_image_enhancement)
+> **"RGB/Event signal fusion framework for multi-degraded underwater image enhancement"**
+> [ResearchGate Link](https://www.researchgate.net/publication/381024944_RGBEvent_signal_fusion_framework_for_multi-degraded_underwater_image_enhancement)
 
-This public dataset includes:
-- **Synchronized RGB and event data** from underwater scenes
-- Collected using a DAVIS sensor (Dynamic and Active-pixel Vision Sensor)
-- Packaged as ROS bag files containing:
-  - `/dvs/image_raw`: standard RGB frames
-  - `/dvs/events`: asynchronous event streams
-  - `/dvs/imu`: inertial measurements (unused in this project)
+This dataset includes:
 
-We extracted RGB frames and generated grayscale event maps to guide motion-aware enhancement. The dataset is particularly challenging due to low visibility, motion blur, and illumination drop-off — making it an ideal testbed for event-based deblurring.
+* Synchronized RGB and event streams from underwater scenes
+* Captured using a DAVIS (Dynamic and Active-pixel Vision Sensor) camera
+* Packaged as ROS bag files containing:
+
+  * `/dvs/image_raw` — RGB image topic
+  * `/dvs/events` — asynchronous event topic
+  * `/dvs/imu` — IMU data (not used in this pipeline)
+
+### How to Extract Data from `.bag` Files
+
+We used the [`rosbags`](https://pypi.org/project/rosbags/) Python library for parsing ROS2 `.bag` files. Steps:
+
+1. Install dependencies:
+
+```bash
+pip install rosbags
+rosbags-convert scene_2.bag --dst converted_scene_2
+
+
+```
+
+2. Extract RGB frames:
+
+```bash
+python dump_frames.py  # Extracts /dvs/image_raw into PNGs in extracted_frames_scene_2/
+```
+
+3. Extract event stream:
+
+```bash
+python extract_events.py  # Dumps /dvs/events into dvs_events_scene_2.csv
+```
+
+4. Align timestamps and generate event maps:
+
+```bash
+python shift_event_timestamps.py  # Shifts event timestamps if YAML and CSV mismatch
+python get_first_image_timestamp.py  # Gets the first RGB frame timestamp for alignment
+python generate_event_maps.py  # Outputs aligned grayscale event maps into event_maps/
+```
+
+> Note: In our case, the timestamps in the YAML metadata and the event CSV did not initially align. To correct this, we used `shift_event_timestamps.py` in combination with `get_first_image_timestamp.py` to manually synchronize the data.
+
+---
+
+## Enhancement Pipeline Summary
+
+After preprocessing, we enhance the RGB frames using a two-stage approach:
+
+1. **Frame Fusion**: Combine three consecutive RGB frames (`t-1`, `t`, `t+1`) using either fixed or adaptive weighting based on the event map.
+2. **Event-Guided Edge Injection**: Compute a Laplacian edge map and selectively inject it into regions with high event activity.
 
 
 ---
 
-## 🚀 Pipeline Summary
+## Scripts
 
-We compute Laplacian edge gradients from event maps and inject them into the luminance channel of RGB images. This adds edge clarity where motion blur is most damaging.
-
-Key features:
-
-* **Adaptive contrast boosting** via CLAHE
-* **Gradient clipping** to reduce halo artifacts
-* **Edge-preserving filtering** using bilateral filters
-
----
-
-## 🔢 Scripts
-
-| Script                             | Description                                                |
-| ---------------------------------- | ---------------------------------------------------------- |
-| `extract_events.py`                | Extracts event arrays from `.bag` file                     |
-| `dump_frames.py`                   | Extracts RGB frames from rosbag                            |
-| `generate_event_maps.py`           | Converts event streams into grayscale event maps           |
-| `downsample_event_rgb.py`          | Resizes RGB and event maps for consistent input shape      |
-| `boost_with_events.py`             | Laplacian-based edge sharpening using event-weighted masks |
-| `fuse_event_rgb.py`                | Initial RGB/event luminance fusion method                  |
-| `blend_event_deblur.py`            | Blends event map with RGB luminance (simple enhancement)   |
-| `blend_event_deblur_halo_fixed.py` | Final version with halo reduction + filtering              |
-| `shift_event_timestamps.py`        | Aligns event timestamps with RGB frames                    |
-| `get_first_image_timestamp.py`     | Helper script for data synchronization                     |
+| Script                              | Description                                                |
+| ----------------------------------- | ---------------------------------------------------------- |
+| `dump_frames.py`                    | Extracts RGB frames from `/dvs/image_raw` topic            |
+| `extract_events.py`                 | Extracts events from `/dvs/events` topic into CSV          |
+| `generate_event_maps.py`            | Creates grayscale motion maps by integrating event data    |
+| `shift_event_timestamps.py`         | Shifts timestamps to align event stream with RGB           |
+| `get_first_image_timestamp.py`      | Retrieves timestamp of the first image in `/dvs/image_raw` |
+| `event_guided_static_fusion.py`     | Applies static 3-frame average + event-based sharpening    |
+| `event_weighted_temporal_fusion.py` | Applies event-weighted frame fusion + edge injection       |
 
 ---
 
-## 📂 Directory Structure
+## Directory Structure
 
-> Note: the following folders and files are **not pushed to GitHub** due to size.
+> Note: Raw datasets and output folders are **not uploaded** due to size constraints.
 
-* `*.bag` files — raw DAVIS recordings
-* `downsampled_rgb/` — extracted and resized RGB images
-* `event_maps/` — generated grayscale event maps
-* `blended_deblurred_rgb/` — output images from the final pipeline
+```
+/dataset.bag                       # Original DAVIS bag file
+/extracted_frames_scene_2/        # RGB frames extracted from /dvs/image_raw
+/event_maps/                      # Grayscale maps of event activity per RGB frame
+/dvs_events_scene_2.csv           # Flattened DVS event log (x, y, timestamp, polarity)
+/blended_deblurred_rgb/          # Final enhanced outputs (if applicable)
+```
 
 ---
 
-## 🌐 Project Info
+## Comparison of Methods
 
-* Course: **Computational Photography** @ Hacettepe University
-* Author: **Leen Said**
+The repository contains two main enhancement scripts:
 
+* `event_guided_static_fusion.py` computes a uniform average of the surrounding frames and applies event-guided Laplacian sharpening.
+* `event_weighted_temporal_fusion.py` performs adaptive fusion of neighboring frames based on motion intensity derived from the event map. It better handles non-uniform blur and dynamically adjusts sharpening strength.
+
+Both methods use Laplacian edge enhancement guided by event activity, but differ in how the RGB base frame is constructed.
+
+---
+
+## Project Info
+
+* **Course**: Computational Photography @ Hacettepe University
+* **Author**: Leen Said
