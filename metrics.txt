@@ -1,0 +1,35 @@
+Comprehensive No-Reference Image Quality Metrics:
+========================================================================================================================
+Image               Laplacian VarianceShannon EntropyGradient Magnitude VarTenengrad VarianceBrenner GradientEdge Density   Local Contrast Michelson ContrastRMS Contrast   Histogram EntropySpatial FrequencyAverage GradientImage Power    High Freq ContentStructure Coherence
+------------------------------------------------------------------------------------------------------------------------
+Raw RGB             65.8837        7.2968         2.02e+03       3.38e+08       61.3842        0.0285         1.6366         1.0000         80.0260        7.2968         7.8492         30.9012        1.09e+09       2.09e+06       0.5526         
+Static Fusion       70.2578        7.3516         1.74e+03       2.15e+08       57.7958        0.0322         1.7107         1.0000         78.4645        7.3516         7.6161         30.7154        1.06e+09       2.17e+06       0.5311         
+Temporal Fusion     44.5079        7.3947         1.07e+03       5.17e+07       38.3077        0.0239         1.5078         1.0000         76.6008        7.3947         6.2005         27.1282        1.04e+09       1.46e+06       0.5193         
+
+========================================================================================================================
+METRIC DESCRIPTIONS:
+========================================================================================================================
+Laplacian Variance  : Sharpness measure - higher values indicate sharper images
+Shannon Entropy     : Information content - higher values indicate more complex images
+Gradient Magnitude Var: Variance of gradient magnitudes - measures edge strength variation
+Tenengrad Variance  : Variance of squared gradients - focus quality measure
+Brenner Gradient    : Average squared gradient - sharpness measure
+Edge Density        : Proportion of edge pixels - measures edge richness
+Local Contrast      : Average local standard deviation - texture measure
+Michelson Contrast  : Global contrast measure (max-min)/(max+min)
+RMS Contrast        : Root mean square contrast - overall contrast measure
+Histogram Entropy   : Entropy of intensity histogram - tonal distribution
+Spatial Frequency   : Overall spatial activity measure
+Average Gradient    : Mean gradient magnitude - edge strength
+Image Power         : Power in frequency domain - overall energy
+High Freq Content   : High frequency energy - detail richness
+Structure Coherence : Local structure organization measure
+
+========================================================================================================================
+INTERPRETATION GUIDELINES:
+- Higher sharpness metrics (Laplacian, Gradient, Tenengrad, Brenner) = better focus
+- Higher entropy metrics = more information/complexity
+- Higher contrast metrics = better visual quality
+- Higher edge density = more detail preservation
+- Compare relative values between your processed images
+========================================================================================================================
